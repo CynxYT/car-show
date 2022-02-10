@@ -1,0 +1,35 @@
+
+.sections-container {
+    width: 100vw;
+}
+
+
+
+
+
+
+
+
+
+// ------------------------------------------------------------------------------------
+
+a {
+    color: inherit; /* blue colors for links too */
+    text-decoration: inherit; /* no underline */
+}
+
+html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+// * {
+//     -ms-overflow-style: none;  /* IE and Edge */
+//     scrollbar-width: none;  /* Firefox */
+// }
