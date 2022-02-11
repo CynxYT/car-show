@@ -13,11 +13,13 @@ export default function useThree() {
         const canvas = document.querySelector('.home-three-object') as HTMLElement;
         const scene = new THREE.Scene();
         const loader = new GLTFLoader();
-        const distance = 6;
+        const distance = 5;
         
-        loader.load( process.env.PUBLIC_URL + "../models/s13.glb", ( gltf ) => {
+        loader.load( process.env.PUBLIC_URL + "../models/s13-2.glb", ( gltf ) => {
           const file = gltf;
-          file.scene.rotateY(1)
+          file.scene.rotateY(0.8)
+          file.scene.translateX(-1);
+          // file.scene.translateZ(1);
           scene.add( file.scene );
         
         }, undefined, function ( error ) {
@@ -46,7 +48,7 @@ export default function useThree() {
 
         // ------------------- Mesh -------------------
         const cube = new THREE.Mesh(geometry,material);
-        // scene.add(cube)
+        // scene.add(cube);
 
 
         
@@ -83,10 +85,10 @@ export default function useThree() {
         camera.position.set(0,0, distance);
         scene.add(camera);
 
-        const cursor = { x : 0 , y : 0, z : distance}
+        const cursor = { x : 0 , y : -0.2, z : distance}
         document.onmousemove = (event) => {
           cursor.x = (event.clientX / window.innerWidth) - 0.5;
-          cursor.y = (event.clientY / window.innerHeight) - 0.5;
+          cursor.y = ((event.clientY / window.innerHeight) - 1.2);
           cursor.z = -Math.abs((event.clientX / window.innerWidth) - 0.5) + distance;
         }
 
@@ -112,7 +114,7 @@ export default function useThree() {
             // const elapsedTime = clock.getElapsedTime()
         
             const cameraX = cursor.x * 5;
-            const cameraY = - cursor.y * 5;
+            const cameraY = - cursor.y * 1.5;
             const cameraZ = cursor.z
 
             camera.rotation.x += (-cameraY / 4 - camera.rotation.x) / 15;
