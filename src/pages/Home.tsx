@@ -9,7 +9,7 @@ export default function Home() {
     return(
 
         <div className="sections-container" data-scroll-container>
-            <canvas className="webgl"></canvas>
+            <canvas className="home-three-object"></canvas>
         </div>
 
     );

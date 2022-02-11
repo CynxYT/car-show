@@ -1,87 +1,97 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 
 export default function useThree() {
 
-    const positionRef = useRef({
-        mouseX: 0,
-        mouseY: 0,
-        destinationX: 0,
-        destinationY: 0,
-        distanceX: 0,
-        distanceY: 0,
-        key: -1,
-      });
-
+  const positionRef = useRef({
+    mouseX: 0,
+    mouseY: 0,
+    destinationX: 0,
+    destinationY: 0,
+    distanceX: 0,
+    distanceY: 0,
+    key: -1,
+  });
 
     useEffect(() => {
 
+        // ------------------- Object -------------------
 
-        // ----- Start with scene -----
-        // Canvas
-        const canvas = document.querySelector('canvas.webgl') as HTMLElement;
-        
-        // Scene
+        const canvas = document.querySelector('.home-three-object') as HTMLElement;
         const scene = new THREE.Scene();
         
-        // Objects
-        const geometry = new THREE.TorusGeometry( .7, .2, 16, 100 );
         
-        // Materials
+
+
+
+        // ------------------- Object -------------------
+        const geometry = new THREE.BoxGeometry( 1, 1, 1);
         
+       
+
+
+
+        // ------------------- Material -------------------
         const material = new THREE.MeshStandardMaterial();
-        material.metalness = 0.3;
-        material.roughness = 0.6;
+        material.metalness = 0.025;
+        material.roughness = 0.5;
         material.color = new THREE.Color(0x2194ce);
         
-        // Mesh
+
+
+
+        // ------------------- Mesh -------------------
         const sphere = new THREE.Mesh(geometry,material);
         scene.add(sphere)
 
 
         
-        // Lights
         
-        const fill = new THREE.PointLight(0xffffff, 1);
-        fill.position.x = -2;
-        fill.position.y = 2;
-        fill.position.z = 4;
+        // ------------------- Lights -------------------
+        const fill = new THREE.PointLight(0xffffff, 0.4);
+        fill.position.set(-2, -1, 4);
         scene.add(fill);
 
-        const key = new THREE.PointLight(0xffffff, 0.3);
-        key.position.set(1,2,3);
+        const key = new THREE.PointLight(0xffffff, 1.2);
+        key.position.set(1, 1, 1);
         scene.add(key);
 
         const back = new THREE.PointLight(0xffffff, 0.2);
-        back.position.x = 1;
-        back.position.y = -1;
-        back.position.z = -3;
+        back.position.set(3, -1, -8);
         scene.add(back);
-        
-        /**
-         * Sizes
-         */
+
+
+
+
+
+   
+        // ------------------- Sizes -------------------
         const sizes = {
             width: window.innerWidth,
             height: window.innerHeight,
         }
 
-        var camX = 0;
-        let camY = 0;
-        let camZ = 0;
 
-        
-        /**
-         * Camera
-         */
-        // Base camera
+
+
+        // ------------------- Camera -------------------
         var camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
-        camera.position.set(camX,camY,camZ + 2);
+        camera.position.set(0,0, 4);
         scene.add(camera);
 
+        const cursor = { x : 0 , y : 0, z : 4}
+        document.onmousemove = (event) => {
+          cursor.x = (event.clientX / window.innerWidth) - 0.5;
+          cursor.y = (event.clientY / window.innerHeight) - 0.5;
+          cursor.z = -Math.abs((event.clientX / window.innerWidth) - 0.5) + 4;
+        }
 
+
+
+
+        // ------------------- Renderer -------------------
         const renderer = new THREE.WebGLRenderer({
             canvas: canvas,
             alpha: true,
@@ -89,83 +99,30 @@ export default function useThree() {
         renderer.setSize(sizes.width, sizes.height)
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
         
-        /**
-         * Animate
-         */
 
-        document.onmousemove = (event) => {
-            const { clientX, clientY } = event;
 
-            const mouseX = clientX;
-            const mouseY = clientY;
- 
 
-            camX = (event.clientX - window.innerWidth / 2) / 5000;
-            camY = -(event.clientY - window.innerHeight / 2) / 5000;
-            sphere.rotation.x = -((event.clientY - (window.innerHeight / 2)) / 2500);
-            sphere.rotation.y = -((event.clientX - (window.innerWidth / 2)) / 2500);
+        // ------------------- Clock + instance -------------------
+        // const clock = new THREE.Clock()
 
-            if (camera.position.x !== null && camera.position.y !== null) {
-                positionRef.current.mouseX = mouseX - (event.clientX - window.innerWidth / 2);
-                positionRef.current.mouseY = mouseY - (event.clientY - window.innerHeight / 2);
-            }
-        }
-        
-        const clock = new THREE.Clock()
-        
         const tick = () => {
+      
+            // const elapsedTime = clock.getElapsedTime()
         
-            const elapsedTime = clock.getElapsedTime()
-        
-            // Update objects
-        
-            // Update Orbital Controls
-            // controls.update()
-        
-            // Render
+            const cameraX = cursor.x * 5;
+            const cameraY = - cursor.y * 5;
+            const cameraZ = cursor.z
+
+            camera.rotation.x += (-cameraY / 4- camera.rotation.x) / 15;
+            camera.rotation.y += (cameraX / 4 - camera.rotation.y) / 15;
+            camera.position.x += (cameraX - camera.position.x) / 15;
+            camera.position.y += (cameraY - camera.position.y) / 15;
+            camera.position.z += (cameraZ - camera.position.z) / 15;
+
             renderer.render(scene, camera);
-        
-            // Call tick again on the next frame
+
             window.requestAnimationFrame(tick);
         }
-
-        const followMouse = () => {
-            positionRef.current.key = requestAnimationFrame(followMouse);
-            const {
-              mouseX,
-              mouseY,
-              destinationX,
-              destinationY,
-              distanceX,
-              distanceY,
-            } = positionRef.current;
-            if (!destinationX || !destinationY) {
-              positionRef.current.destinationX = mouseX;
-              positionRef.current.destinationY = mouseY;
-            } else {
-              positionRef.current.distanceX = (mouseX - destinationX) / 5;
-              positionRef.current.distanceY = (mouseY - destinationY) / 5;
-              if (
-                Math.abs(positionRef.current.distanceX) +
-                  Math.abs(positionRef.current.distanceY) <
-                0.1
-              ) {
-                positionRef.current.destinationX = mouseX;
-                positionRef.current.destinationY = mouseY;
-              } else {
-                positionRef.current.destinationX += distanceX;
-                positionRef.current.destinationY += distanceY;
-              }
-            }
-
-            camX = (destinationX - window.innerWidth / 2) / 5000;
-            camY = -(destinationY - window.innerHeight / 2) / 5000;
-            sphere.rotation.x = -((destinationX - (window.innerHeight / 2)) / 2500);
-            sphere.rotation.y = -((destinationY - (window.innerWidth / 2)) / 2500);
-            camera.position.set(camX, camY, camZ + 2);
-          };
-
-            followMouse();
         
         tick();
 
