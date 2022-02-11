@@ -5,15 +5,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export default function useThree() {
 
-  const positionRef = useRef({
-    mouseX: 0,
-    mouseY: 0,
-    destinationX: 0,
-    destinationY: 0,
-    distanceX: 0,
-    distanceY: 0,
-    key: -1,
-  });
 
     useEffect(() => {
 
@@ -21,8 +12,19 @@ export default function useThree() {
 
         const canvas = document.querySelector('.home-three-object') as HTMLElement;
         const scene = new THREE.Scene();
+        const loader = new GLTFLoader();
+        const distance = 6;
         
+        loader.load( process.env.PUBLIC_URL + "../models/s13.glb", ( gltf ) => {
+          const file = gltf;
+          file.scene.rotateY(1)
+          scene.add( file.scene );
         
+        }, undefined, function ( error ) {
+        
+          console.error( error );
+        
+        } );
 
 
 
@@ -43,15 +45,15 @@ export default function useThree() {
 
 
         // ------------------- Mesh -------------------
-        const sphere = new THREE.Mesh(geometry,material);
-        scene.add(sphere)
+        const cube = new THREE.Mesh(geometry,material);
+        // scene.add(cube)
 
 
         
         
         // ------------------- Lights -------------------
-        const fill = new THREE.PointLight(0xffffff, 0.4);
-        fill.position.set(-2, -1, 4);
+        const fill = new THREE.PointLight(0xffffff, 1);
+        fill.position.set(-2, 5, 4);
         scene.add(fill);
 
         const key = new THREE.PointLight(0xffffff, 1.2);
@@ -78,14 +80,14 @@ export default function useThree() {
 
         // ------------------- Camera -------------------
         var camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
-        camera.position.set(0,0, 4);
+        camera.position.set(0,0, distance);
         scene.add(camera);
 
-        const cursor = { x : 0 , y : 0, z : 4}
+        const cursor = { x : 0 , y : 0, z : distance}
         document.onmousemove = (event) => {
           cursor.x = (event.clientX / window.innerWidth) - 0.5;
           cursor.y = (event.clientY / window.innerHeight) - 0.5;
-          cursor.z = -Math.abs((event.clientX / window.innerWidth) - 0.5) + 4;
+          cursor.z = -Math.abs((event.clientX / window.innerWidth) - 0.5) + distance;
         }
 
 
@@ -113,7 +115,7 @@ export default function useThree() {
             const cameraY = - cursor.y * 5;
             const cameraZ = cursor.z
 
-            camera.rotation.x += (-cameraY / 4- camera.rotation.x) / 15;
+            camera.rotation.x += (-cameraY / 4 - camera.rotation.x) / 15;
             camera.rotation.y += (cameraX / 4 - camera.rotation.y) / 15;
             camera.position.x += (cameraX - camera.position.x) / 15;
             camera.position.y += (cameraY - camera.position.y) / 15;
