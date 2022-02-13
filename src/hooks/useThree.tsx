@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
 import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -17,9 +16,7 @@ export default function useThree() {
 
     const params = {
       enableSSR: true,
-      autoRotate: true,
-      otherMeshes: true,
-      groundReflector: true,
+      groundReflector: false,
       exposure: 0.1,
       bloomStrength: 0.4,
       bloomThreshold: 0,
@@ -38,34 +35,34 @@ export default function useThree() {
         const loader = new GLTFLoader();
         const distance = 6;
         
-        loader.load( process.env.PUBLIC_URL + "../models/s13.glb", ( gltf ) => {
-          const file = gltf;
-          file.scene.rotateY(0.8);
-          file.scene.translateX(1);
-          file.scene.translateZ(-1);
-          scene.add( file.scene );
+        // loader.load( process.env.PUBLIC_URL + "../models/s13.glb", ( gltf ) => {
+        //   const file = gltf;
+        //   file.scene.rotateY(0.8);
+        //   file.scene.translateX(1);
+        //   file.scene.translateZ(-1);
+        //   scene.add( file.scene );
         
-        }, undefined, function ( error ) {
+        // }, undefined, function ( error ) {
         
-          console.error( error );
+        //   console.error( error );
         
-        } );
+        // } );
 
   
         // ------------------- Object -------------------
-        // const cube = new THREE.BoxGeometry( 1, 1, 1);
-        // const cubeMaterial = new THREE.MeshStandardMaterial( { color: 0x808080, roughness: 0.1, metalness: 0 } );
-				// const cubesMaterial = new THREE.Mesh( cube, cubeMaterial );
-        // cubesMaterial.position.y = 0.75;
-        // scene.add(cubesMaterial);
+        const cube = new THREE.BoxGeometry( 1, 1, 1);
+        const cubeMaterial = new THREE.MeshStandardMaterial( { color: 0x808080, roughness: 0.1, metalness: 0 } );
+				const cubesMaterial = new THREE.Mesh( cube, cubeMaterial );
+        cubesMaterial.position.y = 0.75;
+        scene.add(cubesMaterial);
         
        
 
 
 
         // ------------------- Material -------------------
-        const geoFloor = new THREE.BoxGeometry( 8, 0.05, 8 );
-				const matStdFloor = new THREE.MeshStandardMaterial( { color: 0x000000, roughness: 0, metalness: 0 } );
+        const geoFloor = new THREE.BoxGeometry( 12, 0.05, 6 );
+				const matStdFloor = new THREE.MeshStandardMaterial( { color: 0x202020, roughness: 0, metalness: 0 } );
 				const mshStdFloor = new THREE.Mesh( geoFloor, matStdFloor );
 				scene.add( mshStdFloor );
         
@@ -97,25 +94,25 @@ export default function useThree() {
         const light = new THREE.AmbientLight(0xffffff, 0.2);
         scene.add(light);
 
-        const dirlight = new THREE.DirectionalLight(0xffffff, 0.5);
-        dirlight.position.set(-4, 15, 2);
-        dirlight.target.position.set(-1,0,0);
-        scene.add(dirlight);
-        scene.add(dirlight.target);
+        // const dirlight = new THREE.DirectionalLight(0xffffff, 0.5);
+        // dirlight.position.set(-4, 15, 2);
+        // dirlight.target.position.set(-1,0,0);
+        // scene.add(dirlight);
+        // scene.add(dirlight.target);
 
 
-        const geometry = new THREE.PlaneBufferGeometry( 1, 1 );
-        const groundReflector = new ReflectorForSSRPass( geometry, {
-          clipBias: 0.0003,
-          textureWidth: window.innerWidth,
-          textureHeight: window.innerHeight,
-          color: 0x888888,
-          useDepthTexture: true,
-        } );
-        groundReflector.material.depthWrite = false;
-        groundReflector.rotation.x = - Math.PI / 2;
-        groundReflector.visible = false;
-        scene.add( groundReflector );
+        // const geometry = new THREE.PlaneBufferGeometry( 1, 1 );
+        // const groundReflector = new ReflectorForSSRPass( geometry, {
+        //   clipBias: 0.0003,
+        //   textureWidth: window.innerWidth,
+        //   textureHeight: window.innerHeight,
+        //   color: 0x888888,
+        //   useDepthTexture: true,
+        // } );
+        // groundReflector.material.depthWrite = false;
+        // groundReflector.rotation.x = - Math.PI / 2;
+        // groundReflector.visible = false;
+        // scene.add( groundReflector );
 
 
    
@@ -160,11 +157,9 @@ export default function useThree() {
           camera,
           width: window.innerWidth,
           height: window.innerHeight,
-          groundReflector: params.groundReflector ? groundReflector : null,
+          groundReflector: null,
           selects: params.groundReflector ? selects : null
         } );
-
-        const renderScene = new RenderPass( scene, camera );
 
         const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
         bloomPass.threshold = params.bloomThreshold;
@@ -172,13 +167,20 @@ export default function useThree() {
         bloomPass.radius = params.bloomRadius;
 
         // composer.addPass( renderScene );
+
+        ssrPass.thickness = 0;
+        ssrPass.isInfiniteThick = false;
         
-        composer.addPass( ssrPass );
-        composer.addPass( new ShaderPass( GammaCorrectionShader ) );
+        // composer.addPass( ssrPass );
+        // composer.addPass( new ShaderPass( GammaCorrectionShader ) );
+        composer.addPass ( new RenderPass( scene, camera ))
         composer.addPass( bloomPass );
 
-        ssrPass.thickness = 0.018;
-        ssrPass.isInfiniteThick = false;
+    
+        // groundReflector.fresnel = false;//ssrPass.isFresnel;
+        // groundReflector.distanceAttenuation = true;//ssrPass.isDistanceAttenuation;
+        // groundReflector.maxDistance = 0.1;//ssrPass.maxDistance;
+
 
 
 
@@ -189,7 +191,7 @@ export default function useThree() {
       
             // const elapsedTime = clock.getElapsedTime()
         
-            const cameraX = cursor.x * 3;
+            const cameraX = cursor.x * 8;
             const cameraY = - cursor.y;
             const cameraZ = cursor.z
 
